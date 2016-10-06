@@ -54,6 +54,7 @@ class Vote(db.Model):
     quest_id = db.Column(db.Integer, db.ForeignKey('quest.id'))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     work_id = db.Column(db.Integer, db.ForeignKey('work.id'))
+    team_id = db.Column(db.Integer, db.ForeignKey('team.id'))
 
     status = db.Column(db.Integer)
 

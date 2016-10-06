@@ -65,7 +65,7 @@ def parse_works(data, quest_prefix):
 #   The Script
 #
 
-quest_prefix = "L2_Q2"
+quest_prefix = "L2_Q1"
 
 sys.setrecursionlimit(1500)  # Some posts are freakin' deep!
 

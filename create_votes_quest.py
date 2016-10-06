@@ -95,7 +95,7 @@ def add_votes_to_db(votes, quest_prefix):
     work_data_db = app.db.session.query(app.models.Team, app.models.Work) \
         .filter(app.models.Work.quest_id == quest.id).filter(app.models.Team.id == app.models.Work.team_id).all()
     team_ids = {x.name: x.id for x in app.models.Team.query.all()}
-    work_base = {x : [] for x in team_ids}
+    work_base = {x: [] for x in team_ids}
     work_ids = {}
     for entry in work_data_db:
         team = entry[0].name
@@ -119,24 +119,28 @@ def add_votes_to_db(votes, quest_prefix):
             print(vote.user + ": team not found: ", "{" + vote.team + "}")
             status = app.models.Vote.status_team_not_found()
             work_id = None
-        elif works_present_in_quest:
-            if vote.work not in work_base[vote.team]:
-                print(vote.user + ": work not found: ", "{" + str(vote.work) + "}")  # 'work' may be None
-                status = app.models.Vote.status_work_not_found()
-                work_id = None
-            else:
-                status = app.models.Vote.status_valid()
-                work_id = work_ids[(vote.team, vote.work)]
-        else:  # works are not present in this quest
-            work_id = None
-            status = app.models.Vote.status_valid()
+            team_id = None
 
-        #team_id = team_ids[vote.team]
+        else:
+            team_id = team_ids[vote.team]
+            if works_present_in_quest:
+                if vote.work not in work_base[vote.team]:
+                    print(vote.user + ": work not found: ", "{" + str(vote.work) + "}")  # 'work' may be None
+                    status = app.models.Vote.status_work_not_found()
+                    work_id = None
+                else:
+                    status = app.models.Vote.status_valid()
+                    work_id = work_ids[(vote.team, vote.work)]
+            else:  # works are not present in this quest
+                work_id = None
+                status = app.models.Vote.status_valid()
+
 
         votes_to_add.append(app.models.Vote(quest_id=quest.id,
                                             user_id=user_id,
                                             work_id=work_id,
                                             status=status,
+                                            team_id=team_id,
                                             time=vote.time))
     app.db.session.bulk_save_objects(votes_to_add)
     print("Added", len(votes_to_add), "votes")
@@ -148,7 +152,7 @@ def add_votes_to_db(votes, quest_prefix):
 #
 #   Script
 #
-quest_prefix = "L2_Q2"
+quest_prefix = "L1"
 download_folder = "downloaded"
 
 

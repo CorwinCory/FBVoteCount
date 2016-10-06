@@ -2,11 +2,58 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Предварительная статистика Фандомной битвы 2016</title>
+    <title>Brazilian laboratories</title>
+
+    <!-- bootstrap settings -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 </head>
 <body>
-{% block content %}
 
+  <div class="jumbotron" align="center">
+    <h1>{{ page_title }}</h1>
+  </div>
+
+  <!-- navigation bar-->
+  <nav class="navbar navbar-inverse">
+  <div class="container-fluid">
+
+    <ul class="nav navbar-nav">
+
+      <li><a href="{{ navbar_info.main_page.url }}"> {{ navbar_info.main_page.text }} </a></li>
+      <li><a href="{{ navbar_info.total_rating.url }}"> {{ navbar_info.total_rating.text }} </a></li>
+
+      <!-- Quest statistics -->
+      <li class="dropdown">
+        <a class="dropdown-toggle" data-toggle="dropdown" href="#">Рейтинг по квестам
+        <span class="caret"></span></a>
+        <ul class="dropdown-menu">
+            {% for quest in navbar_info.quest_ratings %}
+                <li><a href="{{ quest.url }}">{{ quest.text }}</a></li>
+            {% endfor %}
+        </ul>
+      </li>
+
+      <!-- Work statistics -->
+      <li class="dropdown">
+        <a class="dropdown-toggle" data-toggle="dropdown" href="#">Рейтинг по работам
+        <span class="caret"></span></a>
+        <ul class="dropdown-menu">
+            {% for quest in navbar_info.work_ratings %}
+                <li><a href="{{ quest.url }}">{{ quest.text }}</a></li>
+            {% endfor %}
+        </ul>
+      </li>
+
+
+    </ul>
+  </div>
+</nav>
+
+{% block content %}
+На этом сайте собирается и обновляется статистика Фандомной битвы-2016.
 {% endblock %}
 </body>
 </html>
