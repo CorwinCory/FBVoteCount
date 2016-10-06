@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <table>
+        <tr>
+            <th align="left">№</th>
+            <th>Команда</th>
+            <th>Голосов</th>
+        </tr>
+        {% for team in rating %}
+        <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ team[0] }}</td>
+            <td>{{ team[1] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+{% endblock %}
