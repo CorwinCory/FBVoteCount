@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    <div align="center">
+        Фигурные скобки не являются частью текста голоса и служат для упрощения нахождения лишних пробелов в начале или конце строчки.
+
+        <table>
+              <col width="164">
+              <col width="164">
+              <col width="512">
+            <tr>
+                <th align="left">Время</th>
+                <th>Пользователь</th>
+                <th>Ошибка</th>
+            </tr>
+            {% for error in errors %}
+            <tr>
+                <td>{{ error.time }}</td>
+                <td>{{ error.user }}</td>
+                <td>{{ error.msg }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+{% endblock %}

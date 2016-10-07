@@ -10,12 +10,29 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 </head>
+
+{% macro draw_quest_links(page_obj) %}
+      <li class="dropdown">
+        <a class="dropdown-toggle" data-toggle="dropdown" href="#"> {{page_obj.title}}
+        <span class="caret"></span></a>
+        <ul class="dropdown-menu">
+            {% for quest in page_obj.links %}
+                <li><a href="{{ quest.url }}">{{ quest.text }}</a></li>
+            {% endfor %}
+        </ul>
+      </li>
+{% endmacro %}
+
+
 <body>
 
   <div class="jumbotron" align="center">
     <h1>{{ page_title }}</h1>
   </div>
 
+  <div class="well">
+    Последнее обновление: {{ navbar_info.last_update }}
+  </div>
   <!-- navigation bar-->
   <nav class="navbar navbar-inverse">
   <div class="container-fluid">
@@ -26,26 +43,11 @@
       <li><a href="{{ navbar_info.total_rating.url }}"> {{ navbar_info.total_rating.text }} </a></li>
 
       <!-- Quest statistics -->
-      <li class="dropdown">
-        <a class="dropdown-toggle" data-toggle="dropdown" href="#">Рейтинг по квестам
-        <span class="caret"></span></a>
-        <ul class="dropdown-menu">
-            {% for quest in navbar_info.quest_ratings %}
-                <li><a href="{{ quest.url }}">{{ quest.text }}</a></li>
-            {% endfor %}
-        </ul>
-      </li>
+      {{ draw_quest_links(navbar_info.quest_ratings_links) }}
+      {{ draw_quest_links(navbar_info.work_ratings_links) }}
+      {{ draw_quest_links(navbar_info.error_ratings_links) }}
 
       <!-- Work statistics -->
-      <li class="dropdown">
-        <a class="dropdown-toggle" data-toggle="dropdown" href="#">Рейтинг по работам
-        <span class="caret"></span></a>
-        <ul class="dropdown-menu">
-            {% for quest in navbar_info.work_ratings %}
-                <li><a href="{{ quest.url }}">{{ quest.text }}</a></li>
-            {% endfor %}
-        </ul>
-      </li>
 
 
     </ul>
@@ -54,6 +56,8 @@
 
 {% block content %}
 На этом сайте собирается и обновляется статистика Фандомной битвы-2016.
+<p>
+Дневник на дайриках живёт <a href="http://brazilianlaboratories.diary.ru/">тут</a>.
 {% endblock %}
 </body>
 </html>

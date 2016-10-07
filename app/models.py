@@ -38,6 +38,7 @@ class Work(db.Model):
     team_id = db.Column(db.Integer, db.ForeignKey('team.id'))
 
     name = db.Column(db.String(256))
+    url = db.Column(db.String(1024))
 
     # back refs
     votes = db.relationship('Vote', backref='vote', lazy='dynamic')
@@ -57,7 +58,7 @@ class Vote(db.Model):
     team_id = db.Column(db.Integer, db.ForeignKey('team.id'))
 
     status = db.Column(db.Integer)
-
+    err_line = db.Column(db.String(128), default=None)
     time = db.Column(db.DateTime)
 
     @staticmethod
@@ -65,10 +66,18 @@ class Vote(db.Model):
         return 0
 
     @staticmethod
-    def status_team_not_found():
+    def status_invalid_num_teams():
         return 1
 
     @staticmethod
-    def status_work_not_found():
+    def status_invalid_line():
         return 2
+
+    @staticmethod
+    def status_team_not_found():
+        return 3
+
+    @staticmethod
+    def status_work_not_found():
+        return 4
 

@@ -5,3 +5,4 @@ db_repository/
 app/__pycache__/
 __pycache__/
 .idea/
+data/

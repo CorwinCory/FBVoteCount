@@ -1,7 +1,6 @@
 import app
 import misc
 
-
 from bs4 import BeautifulSoup
 import os
 import re
@@ -13,11 +12,15 @@ from config import FB_YEAR, MIN_VOTES, MAX_VOTES, DIARY_PAGE_ENCODING
 
 # String storage
 class VoteAux:
-    def __init__(self, user, team, work, time_mark):
+    def __init__(self, user, team, work, time_mark,
+                 status=app.models.Vote.status_valid(),
+                 line=None):
         self.time = time_mark
         self.user = user
         self.team = team
         self.work = work
+        self.status = status
+        self.line = line
 
 
 def diary_str_to_datetime(string):
@@ -58,7 +61,10 @@ def get_votes_from_page(page_data):
                 continue
             voteInfo = reExtractData.search(line)
             if voteInfo is None:
-                print(author + ": некорректная строчка:", line)
+                print(author + ": некорректная строчка:", "{" + line + "}")
+                post_votes.append(VoteAux(author, None, None, post_time,
+                                          app.models.Vote.status_invalid_line(),
+                                          "{" + line + "}"))
                 continue
             if voteInfo.group(3) is None:
                 work_name = None
@@ -75,7 +81,10 @@ def get_votes_from_page(page_data):
         # check if the amount of correct votes is right
         correct_lines = len(list(filter(lambda x: len(x.strip()) > 0, team_votes)))
         if correct_lines < MIN_VOTES or correct_lines > MAX_VOTES:
-            print("Неправильное число команд:", author, correct_lines)
+            print("Неправильное число команд: ", author, correct_lines)
+            votes_page.append(VoteAux(author, None, None, post_time,
+                                      app.models.Vote.status_invalid_num_teams(),
+                                      str(correct_lines)))
             continue
         # remove old votes, if they are present
         votes_page = list(filter(lambda x: x.user != author, votes_page))
@@ -115,32 +124,47 @@ def add_votes_to_db(votes, quest_prefix):
     votes_to_add = []
     for vote in votes:
         user_id = user_ids[vote.user]
+        # The following statuses mean that the vote was malformed --> append it without extraction
+        if vote.status == app.models.Vote.status_invalid_line() \
+                or vote.status == app.models.Vote.status_invalid_num_teams():
+            votes_to_add.append(app.models.Vote(quest_id=quest.id,
+                                                user_id=user_id,
+                                                work_id=None,
+                                                status=vote.status,
+                                                team_id=None,
+                                                time=vote.time,
+                                                err_line=vote.line))
+            continue
+        # The vote was formed correctly --- check the team and work
         if vote.team not in team_ids:
             print(vote.user + ": team not found: ", "{" + vote.team + "}")
             status = app.models.Vote.status_team_not_found()
+            line = "{" + str(vote.team) + "}"
             work_id = None
             team_id = None
-
-        else:
+        else:  # the team was found! check the validityof the work
             team_id = team_ids[vote.team]
             if works_present_in_quest:
                 if vote.work not in work_base[vote.team]:
                     print(vote.user + ": work not found: ", "{" + str(vote.work) + "}")  # 'work' may be None
                     status = app.models.Vote.status_work_not_found()
                     work_id = None
+                    line = "{" + str(vote.work) + "}"
                 else:
                     status = app.models.Vote.status_valid()
                     work_id = work_ids[(vote.team, vote.work)]
+                    line = None
             else:  # works are not present in this quest
                 work_id = None
                 status = app.models.Vote.status_valid()
-
+                line = None
 
         votes_to_add.append(app.models.Vote(quest_id=quest.id,
                                             user_id=user_id,
                                             work_id=work_id,
                                             status=status,
                                             team_id=team_id,
+                                            err_line=line,
                                             time=vote.time))
     app.db.session.bulk_save_objects(votes_to_add)
     print("Added", len(votes_to_add), "votes")
@@ -152,11 +176,12 @@ def add_votes_to_db(votes, quest_prefix):
 #
 #   Script
 #
-quest_prefix = "L1"
+quest_prefix = "L2_Q4"
 download_folder = "downloaded"
 
-
 q = app.db.session.query(app.models.Quest).filter_by(prefix=quest_prefix).one()
+app.db.session.query(app.models.Vote).filter_by(quest_id=q.id).delete()
+app.db.session.commit()
 
 files = list(filter(lambda x: x.startswith(quest_prefix), os.listdir(download_folder)))
 
