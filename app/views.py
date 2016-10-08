@@ -42,12 +42,13 @@ def index():
 
 @app.route('/totalrating')
 def total_rating():
-    rating = db.session.query(models.Team.name, func.count(models.Vote.id)).\
+    rating = db.session.query(models.Team.name, models.Team.id, func.count(models.Vote.id)).\
         filter(models.Vote.status == models.Vote.status_valid()).\
         filter(models.Vote.team_id == models.Team.id).group_by(models.Team.name).all()
-    rating.sort(key=lambda x: -x[1])
+    rating.sort(key=lambda x: -x[2])
+    rated = [(Link(x[0], url_for('team_info', team_id=x[1])), x[2]) for x in rating]
     return render_template('basic_rating.html',
-                           rating=rating,
+                           rating=rated,
                            page_title="Общий рейтинг по всем квестам",
                            navbar_info=NavBarInfo())
 
@@ -72,19 +73,20 @@ def quest_rating(quest_prefix):
                                navbar_info=NavBarInfo())
     of_results = db.session.query(models.OfficialResult).filter_by(quest_id=quest.id).all()
     if len(of_results) == 0:
-        rating = db.session.query(models.Team.name, func.count(models.Vote.id)).\
+        rating = db.session.query(models.Team.name, models.Team.id, func.count(models.Vote.id)).\
             filter(models.Vote.status == models.Vote.status_valid()). \
             filter(models.Vote.quest_id == quest.id). \
             filter(models.Vote.team_id == models.Team.id).group_by(models.Team.name).all()
-        rating.sort(key=lambda x: -x[1])
+        rating.sort(key=lambda x: -x[2])
+        rated = [(Link(x[0], url_for('team_info', team_id=x[1])), x[2]) for x in rating]
         descr = "Предварительный рейтинг"
     else:
         of_results.sort(key=lambda x: -x.result)
-        rating = [(x.team.name, x.result) for x in of_results]
+        rated = [(Link(x.team.name, url_for('team_info', team_id=x.team.id)), x.result) for x in of_results]
         descr = "Официальные результаты"
 
     return render_template('basic_rating.html',
-                           rating=rating,
+                           rating=rated,
                            description=descr,
                            page_title="Рейтинг за " + quest.name,
                            navbar_info=NavBarInfo())

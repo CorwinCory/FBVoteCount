@@ -196,7 +196,9 @@ def create_votes(quest_prefix):
 #
 #   Script
 #
-prefixes = ["L1", "L2_Q1", "L2_Q2", "L2_Q3", "L2_Q4"]
+#prefixes = ["L1", "L2_Q1", "L2_Q2", "L2_Q3", "L2_Q4"]
+#prefixes = ["L3_Q1", "L3_Q2", "L4_Q1", "L4_Q2", "L4_Q3", "L4_Q3"]
+prefixes = ["L4_Q4"]
 
 for prefix in prefixes:
     create_votes(prefix)

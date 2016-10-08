@@ -15,7 +15,7 @@
             {% for team in rating %}
             <tr>
                 <td>{{ loop.index }}</td>
-                <td>{{ team[0] }}</td>
+                <td> <a href="{{team[0].url}}"> {{team[0].text}}</a> </td>
                 <td>{{ team[1] }}</td>
             </tr>
             {% endfor %}
