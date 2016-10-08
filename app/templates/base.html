@@ -41,13 +41,13 @@
 
       <li><a href="{{ navbar_info.main_page.url }}"> {{ navbar_info.main_page.text }} </a></li>
       <li><a href="{{ navbar_info.total_rating.url }}"> {{ navbar_info.total_rating.text }} </a></li>
+      <li><a href="{{ navbar_info.team_select.url }}"> {{ navbar_info.team_select.text }} </a></li>
 
       <!-- Quest statistics -->
       {{ draw_quest_links(navbar_info.quest_ratings_links) }}
       {{ draw_quest_links(navbar_info.work_ratings_links) }}
       {{ draw_quest_links(navbar_info.error_ratings_links) }}
 
-      <!-- Work statistics -->
 
 
     </ul>
@@ -55,9 +55,12 @@
 </nav>
 
 {% block content %}
-На этом сайте собирается и обновляется статистика Фандомной битвы-2016.
-<p>
-Дневник на дайриках живёт <a href="http://brazilianlaboratories.diary.ru/">тут</a>.
+  <div class="well">
+    На этом сайте собирается и обновляется статистика Фандомной  Сайт пока находится в состоянии разработки и данные
+    здесь пока будут отличаться от правильных в неправильную сторону.
+    <p/>
+    Дневник статистики ФБ на дайриках живёт <a href="http://brazilianlaboratories.diary.ru/">тут</a>, в нем данные по-прежнему максимально возможно точные.
+  </div>
 {% endblock %}
 </body>
 </html>

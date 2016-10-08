@@ -171,27 +171,32 @@ def add_votes_to_db(votes, quest_prefix):
     app.db.session.commit()
 
 
+def create_votes(quest_prefix):
+    download_folder = "downloaded"
+
+    q = app.db.session.query(app.models.Quest).filter_by(prefix=quest_prefix).one()
+    app.db.session.query(app.models.Vote).filter_by(quest_id=q.id).delete()
+    app.db.session.commit()
+
+    files = list(filter(lambda x: x.startswith(quest_prefix), os.listdir(download_folder)))
+
+    votes = []
+    t0 = time_module.time()
+
+    for file in files:
+        print("Parsing", file)
+        votes += get_votes_from_page(
+            open(os.path.join(download_folder, file), "r", encoding=DIARY_PAGE_ENCODING).read())
+
+    add_votes_to_db(votes, quest_prefix)
+    t1 = time_module.time()
+    print("Done in", t1 - t0)
 
 
 #
 #   Script
 #
-quest_prefix = "L2_Q4"
-download_folder = "downloaded"
+prefixes = ["L1", "L2_Q1", "L2_Q2", "L2_Q3", "L2_Q4"]
 
-q = app.db.session.query(app.models.Quest).filter_by(prefix=quest_prefix).one()
-app.db.session.query(app.models.Vote).filter_by(quest_id=q.id).delete()
-app.db.session.commit()
-
-files = list(filter(lambda x: x.startswith(quest_prefix), os.listdir(download_folder)))
-
-votes = []
-t0 = time_module.time()
-
-for file in files:
-    print("Parsing", file)
-    votes += get_votes_from_page(open(os.path.join(download_folder, file), "r", encoding=DIARY_PAGE_ENCODING).read())
-
-add_votes_to_db(votes, quest_prefix)
-t1 = time_module.time()
-print("Done in", t1-t0)
+for prefix in prefixes:
+    create_votes(prefix)

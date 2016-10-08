@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div align="center">
+    <table>
+        {% for team in teams %}
+            <tr><td><a href="{{ team.url }}">{{ team.text }} </a></td></tr>
+        {% endfor %}
+    </table>
+</div>
+{% endblock %}

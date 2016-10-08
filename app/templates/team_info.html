@@ -5,25 +5,23 @@
     <div align="center">
          При нажатии на название работы откроется выкладка с ней в новой вкладке.
 
-        <table>
-              <col width="50">
+        {% for quest in works %}
+        <h1>{{quest}}</h1>
+            <table>
               <col width="256">
-              <col width="200">
               <col width="50">
             <tr>
-                <th align="left">№</th>
                 <th>Работа</th>
-                <th>Команда</th>
                 <th>Голосов</th>
             </tr>
-            {% for team in rating %}
+            {% for work in works[quest] %}
             <tr>
-                <td>{{ loop.index }}</td>
-                <td><a href="{{ team[1] }}" target="_blank"> {{ team[0] }} </a> </td>
-                <td>{{ team[2] }}</td>
-                <td>{{ team[3] }}</td>
+                <td><a href="{{ work.work.url }}" target="_blank"> {{ work.work.text }} </a> </td>
+                <td>{{ work.points }}</td>
             </tr>
             {% endfor %}
         </table>
+        {% endfor %}
+
     </div>
 {% endblock %}

@@ -7,6 +7,7 @@ class Team(db.Model):
 
     # Back refs
     works = db.relationship('Work', backref='team', lazy='dynamic')
+    of_result = db.relationship('OfficialResult', backref='team', lazy='dynamic')
 
 
 class Quest(db.Model):
@@ -81,3 +82,10 @@ class Vote(db.Model):
     def status_work_not_found():
         return 4
 
+
+class OfficialResult(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+    quest_id = db.Column(db.Integer, db.ForeignKey('quest.id'))
+    team_id = db.Column(db.Integer, db.ForeignKey('team.id'))
+    result = db.Column(db.Integer)

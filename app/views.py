@@ -22,7 +22,7 @@ class NavBarInfo:
         self.main_page = Link("Домашняя страница", url_for('index'))
         self.total_rating = Link("Общий рейтинг", url_for('total_rating'))
 
-        quests = db.session.query(models.Quest).all()
+        quests = db.session.query(models.Quest).order_by(models.Quest.prefix).all()
         self.last_update = db.session.query(func.max(models.Vote.time)).one()[0]
 
         self.quest_ratings_links = PagesPerQuest("Рейтинг по квестам",
@@ -32,7 +32,7 @@ class NavBarInfo:
         self.error_ratings_links = PagesPerQuest("Ошибки в голосах",
                                                 [Link(x.name, url_for('error_rating', quest_prefix=x.prefix)) for x in
                                                  quests])
-
+        self.team_select = Link("Работы по командам", url_for('select_team'))
 
 
 @app.route('/')
@@ -51,6 +51,17 @@ def total_rating():
                            page_title="Общий рейтинг по всем квестам",
                            navbar_info=NavBarInfo())
 
+@app.route('/totalratingdetailed')
+def total_rating_detalied():
+    rating = db.session.query(models.Team.name, func.count(models.Vote.id)).\
+        filter(models.Vote.status == models.Vote.status_valid()).\
+        filter(models.Vote.team_id == models.Team.id).group_by(models.Team.name).all()
+    rating.sort(key=lambda x: -x[1])
+    return render_template('basic_rating.html',
+                           rating=rating,
+                           page_title="Общий рейтинг по всем квестам",
+                           navbar_info=NavBarInfo())
+
 @app.route('/rating/<quest_prefix>')
 def quest_rating(quest_prefix):
     quest = db.session.query(models.Quest).filter_by(prefix=quest_prefix).first()
@@ -59,15 +70,25 @@ def quest_rating(quest_prefix):
                                rating=[],
                                page_title="Квест не найден: " + quest_prefix,
                                navbar_info=NavBarInfo())
-    rating = db.session.query(models.Team.name, func.count(models.Vote.id)).\
-        filter(models.Vote.status == models.Vote.status_valid()). \
-        filter(models.Vote.quest_id == quest.id). \
-        filter(models.Vote.team_id == models.Team.id).group_by(models.Team.name).all()
-    rating.sort(key=lambda x: -x[1])
+    of_results = db.session.query(models.OfficialResult).filter_by(quest_id=quest.id).all()
+    if len(of_results) == 0:
+        rating = db.session.query(models.Team.name, func.count(models.Vote.id)).\
+            filter(models.Vote.status == models.Vote.status_valid()). \
+            filter(models.Vote.quest_id == quest.id). \
+            filter(models.Vote.team_id == models.Team.id).group_by(models.Team.name).all()
+        rating.sort(key=lambda x: -x[1])
+        descr = "Предварительный рейтинг"
+    else:
+        of_results.sort(key=lambda x: -x.result)
+        rating = [(x.team.name, x.result) for x in of_results]
+        descr = "Официальные результаты"
+
     return render_template('basic_rating.html',
                            rating=rating,
+                           description=descr,
                            page_title="Рейтинг за " + quest.name,
                            navbar_info=NavBarInfo())
+
 
 @app.route('/works/<quest_prefix>')
 def work_rating(quest_prefix):
@@ -77,13 +98,15 @@ def work_rating(quest_prefix):
                                rating=[],
                                page_title="Квест не найден: " + quest_prefix,
                                navbar_info=NavBarInfo())
+
+
     rating = db.session.query(models.Work.name, models.Work.url, models.Team.name, func.count(models.Vote.id)).\
         filter(models.Vote.status == models.Vote.status_valid()). \
         filter(models.Vote.work_id == models.Work.id). \
         filter(models.Work.team_id == models.Team.id). \
         filter(models.Vote.quest_id == quest.id).group_by(models.Work.name).all()
-
     rating.sort(key=lambda x: -x[3])
+
     return render_template('work_rating.html',
                            rating=rating,
                            page_title="Рейтинг работ за " + quest.name,
@@ -126,4 +149,44 @@ def error_rating(quest_prefix):
     return render_template('error_rating.html',
                            errors=error_ratings,
                            page_title="Ошибки в голосах за " + quest.name,
+                           navbar_info=NavBarInfo())
+
+@app.route('/team/<team_id>')
+def team_info(team_id):
+    team = db.session.query(models.Team.name).filter_by(id=team_id).first()
+    if team is None:
+        return render_template('team_info.html',
+                               works=None,
+                               page_title= "Команда не найдена: " + str(team_id),
+                               navbar_info=NavBarInfo())
+    data = db.session.query(models.Quest.name, models.Work.name, models.Work.url, func.count(models.Vote.id)). \
+        filter(models.Vote.status == models.Vote.status_valid()). \
+        filter(models.Vote.work_id == models.Work.id). \
+        filter(models.Work.team_id == team_id). \
+        filter(models.Vote.quest_id == models.Quest.id).group_by(models.Work.name).all()
+
+    class WorkAux:
+        def __init__(self, work, points):
+            self.work = work
+            self.points = points
+    works = {}
+    for work in data:
+        quest = work[0]
+        if quest not in works:
+            works[quest] = []
+        works[quest].append(WorkAux(Link(work[1], work[2]), work[3]))
+
+    return render_template('team_info.html',
+                           works=works,
+                           page_title="Работы команды " + team.name,
+                           navbar_info=NavBarInfo())
+
+
+@app.route('/selectteam/')
+def select_team():
+    teams = db.session.query(models.Team).order_by(models.Team.name).all()
+    team_table = [Link(x.name, url_for('team_info', team_id = x.id)) for x in teams]
+    return render_template('team_select.html',
+                           page_title="Выбор команды",
+                           teams=team_table,
                            navbar_info=NavBarInfo())
